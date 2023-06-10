@@ -26,14 +26,21 @@ async function run() {
     // await client.connect();
     // Send a ping to confirm a successful connection
     //project start here
-
+    //collentions
     const parentReviewCollention = client
       .db("re-zanSchoolDB")
       .collection("parents_reviews");
+    const newsCollection = client.db("re-zanSchoolDB").collection("news");
 
     //parent reviews data get
     app.get("/parentReviews", async (req, res) => {
       const result = await parentReviewCollention.find().toArray();
+      res.send(result);
+    });
+
+    //news data get from server side
+    app.get("/news", async (req, res) => {
+      const result = await newsCollection.find().toArray();
       res.send(result);
     });
 
