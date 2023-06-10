@@ -7,6 +7,7 @@ const port = process.env.PORT || 5000;
 
 //middleware
 app.use(cors());
+app.use(express.json());
 
 //mongodb start
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_USERPASSWORD}@cluster0.6wlkevy.mongodb.net/?retryWrites=true&w=majority`;
@@ -27,10 +28,24 @@ async function run() {
     // Send a ping to confirm a successful connection
     //project start here
     //collentions
+
     const parentReviewCollention = client
       .db("re-zanSchoolDB")
       .collection("parents_reviews");
     const newsCollection = client.db("re-zanSchoolDB").collection("news");
+    const userCollection = client.db("re-zanSchoolDB").collection("user");
+
+    //users
+    app.post("/users", async (req, res) => {
+      const userData = req.body;
+      const query = { email: userData.email };
+      const existing = await userCollection.findOne(query);
+      if (existing) {
+        return res.send("You are already loggedIn");
+      }
+      const result = await userCollection.insertOne(userData);
+      res.send(result);
+    });
 
     //parent reviews data get
     app.get("/parentReviews", async (req, res) => {
