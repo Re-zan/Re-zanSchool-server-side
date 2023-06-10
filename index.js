@@ -40,7 +40,7 @@ async function run() {
 
     //news data get from server side
     app.get("/news", async (req, res) => {
-      const result = await newsCollection.find().toArray();
+      const result = await newsCollection.find().sort({ date: -1 }).toArray();
       res.send(result);
     });
 
