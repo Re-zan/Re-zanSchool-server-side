@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
 
 //middleware
@@ -27,14 +27,19 @@ async function run() {
     // await client.connect();
     // Send a ping to confirm a successful connection
     //project start here
-    //collentions
 
+    //collentions
     const parentReviewCollention = client
       .db("re-zanSchoolDB")
       .collection("parents_reviews");
     const newsCollection = client.db("re-zanSchoolDB").collection("news");
     const userCollection = client.db("re-zanSchoolDB").collection("user");
 
+    //get all user data
+    app.get("/users", async (req, res) => {
+      const result = await userCollection.find().sort({ _id: -1 }).toArray();
+      res.send(result);
+    });
     //users
     app.post("/users", async (req, res) => {
       const userData = req.body;
@@ -44,6 +49,34 @@ async function run() {
         return res.send("You are already loggedIn");
       }
       const result = await userCollection.insertOne(userData);
+      res.send(result);
+    });
+
+    //make admin
+    app.put("/users/admin/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      userData = {
+        $set: {
+          role: "admin",
+        },
+      };
+
+      const result = await userCollection.updateOne(filter, userData);
+      res.send(result);
+    });
+
+    //make instructor
+    app.put("/users/instructor/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      userData = {
+        $set: {
+          role: "instructor",
+        },
+      };
+
+      const result = await userCollection.updateOne(filter, userData);
       res.send(result);
     });
 
