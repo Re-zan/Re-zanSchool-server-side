@@ -4,12 +4,32 @@ const cors = require("cors");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const token = process.env.ACCESS_TOKEN_JWT;
+
 const port = process.env.PORT || 5000;
 
 //middleware
 app.use(cors());
 app.use(express.json());
+
+//veryfiJWT
+const veryfiJWT = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res
+      .status(401)
+      .send({ error: true, message: "Unauthorization access" });
+  }
+  const token = token.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_JWT, (err, decoded) => {
+    if (err) {
+      return res
+        .status(401)
+        .send({ error: true, message: "Unauthorization access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+};
 
 //mongodb start
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_USERPASSWORD}@cluster0.6wlkevy.mongodb.net/?retryWrites=true&w=majority`;
@@ -40,7 +60,9 @@ async function run() {
     //make route for jwt
     app.post("/users/jwt", (req, res) => {
       const userdata = req.body;
-      const tokenCreate = jwt.sign(userdata, token, { expiresIn: "1h" });
+      const tokenCreate = jwt.sign(userdata, process.env.ACCESS_TOKEN_JWT, {
+        expiresIn: "1h",
+      });
       res.send(tokenCreate);
     });
 
