@@ -1,10 +1,13 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const token = process.env.ACCESS_TOKEN_JWT;
 const port = process.env.PORT || 5000;
 
+console.log(token);
 //middleware
 app.use(cors());
 app.use(express.json());
@@ -34,6 +37,12 @@ async function run() {
       .collection("parents_reviews");
     const newsCollection = client.db("re-zanSchoolDB").collection("news");
     const userCollection = client.db("re-zanSchoolDB").collection("user");
+
+    //make route for jwt
+    app.get("users/jwt", (req, res) => {
+      const userdata = req.body;
+      console.log(userdata);
+    });
 
     //get all user data
     app.get("/users", async (req, res) => {
@@ -65,6 +74,16 @@ async function run() {
       const result = await userCollection.updateOne(filter, userData);
       res.send(result);
     });
+
+    //check admin
+    // app.get("/users/admin/:email", async (req, res) => {
+    //   const email = req.params.email;
+
+    //   const query = { email: email };
+    //   const user = await userCollection.findOne(query);
+    //   const result = { admin: user?.role === "admin" };
+    //   res.send(result);
+    // });
 
     //make instructor
     app.put("/users/instructor/:id", async (req, res) => {
