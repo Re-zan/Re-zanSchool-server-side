@@ -7,7 +7,6 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const token = process.env.ACCESS_TOKEN_JWT;
 const port = process.env.PORT || 5000;
 
-console.log(token);
 //middleware
 app.use(cors());
 app.use(express.json());
@@ -39,9 +38,10 @@ async function run() {
     const userCollection = client.db("re-zanSchoolDB").collection("user");
 
     //make route for jwt
-    app.get("users/jwt", (req, res) => {
+    app.post("/users/jwt", (req, res) => {
       const userdata = req.body;
-      console.log(userdata);
+      const tokenCreate = jwt.sign(userdata, token, { expiresIn: "1h" });
+      res.send(tokenCreate);
     });
 
     //get all user data
