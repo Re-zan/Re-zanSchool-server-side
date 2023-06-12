@@ -14,12 +14,13 @@ app.use(express.json());
 //veryfiJWT
 const veryfiJWT = (req, res, next) => {
   const authorization = req.headers.authorization;
+
   if (!authorization) {
     return res
       .status(401)
       .send({ error: true, message: "Unauthorization access" });
   }
-  const token = token.split(" ")[1];
+  const token = authorization.split(" ")[1];
   jwt.verify(token, process.env.ACCESS_TOKEN_JWT, (err, decoded) => {
     if (err) {
       return res
@@ -27,6 +28,7 @@ const veryfiJWT = (req, res, next) => {
         .send({ error: true, message: "Unauthorization access" });
     }
     req.decoded = decoded;
+
     next();
   });
 };
@@ -56,10 +58,12 @@ async function run() {
       .collection("parents_reviews");
     const newsCollection = client.db("re-zanSchoolDB").collection("news");
     const userCollection = client.db("re-zanSchoolDB").collection("user");
+    const classesCollection = client.db("re-zanSchoolDB").collection("classes");
 
     //make route for jwt
     app.post("/users/jwt", (req, res) => {
       const userdata = req.body;
+      console.log("userdata", userdata);
       const tokenCreate = jwt.sign(userdata, process.env.ACCESS_TOKEN_JWT, {
         expiresIn: "1h",
       });
@@ -97,15 +101,26 @@ async function run() {
       res.send(result);
     });
 
-    //check admin
-    // app.get("/users/admin/:email", async (req, res) => {
-    //   const email = req.params.email;
+    // check admin
+    app.get("/users/admin/:email", veryfiJWT, async (req, res) => {
+      const email = req.params.email;
+      if (req.decoded.email !== email) {
+        res.send({ admin: false });
+      }
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      const result = { admin: user?.role === "admin" };
+      res.send(result);
+    });
 
-    //   const query = { email: email };
-    //   const user = await userCollection.findOne(query);
-    //   const result = { admin: user?.role === "admin" };
-    //   res.send(result);
-    // });
+    //check instructor
+    app.get("/users/instructor/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      const result = { instructor: user?.role === "instructor" };
+      res.send({ result, user });
+    });
 
     //make instructor
     app.put("/users/instructor/:id", async (req, res) => {
@@ -116,8 +131,14 @@ async function run() {
           role: "instructor",
         },
       };
-
       const result = await userCollection.updateOne(filter, userData);
+      res.send(result);
+    });
+
+    //add class
+    app.post("/classes", async (req, res) => {
+      const classesDatas = req.body;
+      const result = await classesCollection.insertOne(classesDatas);
       res.send(result);
     });
 
