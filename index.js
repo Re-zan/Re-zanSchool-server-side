@@ -63,7 +63,6 @@ async function run() {
     //make route for jwt
     app.post("/users/jwt", (req, res) => {
       const userdata = req.body;
-      console.log("userdata", userdata);
       const tokenCreate = jwt.sign(userdata, process.env.ACCESS_TOKEN_JWT, {
         expiresIn: "1h",
       });
@@ -139,6 +138,19 @@ async function run() {
     app.post("/classes", async (req, res) => {
       const classesDatas = req.body;
       const result = await classesCollection.insertOne(classesDatas);
+      res.send(result);
+    });
+    //get classes
+    app.get("/classes", async (req, res) => {
+      const result = await classesCollection.find().sort({ _id: -1 }).toArray();
+      res.send(result);
+    });
+    //get classes by instructor
+    app.get("/classes/:email", async (req, res) => {
+      const result = await classesCollection
+        .find({ instructor_email: req.params.email })
+        .toArray();
+
       res.send(result);
     });
 
