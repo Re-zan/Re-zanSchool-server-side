@@ -69,6 +69,7 @@ async function run() {
       res.send(tokenCreate);
     });
 
+    ///////////user
     //get all user data
     app.get("/users", async (req, res) => {
       const result = await userCollection.find().sort({ _id: -1 }).toArray();
@@ -86,6 +87,7 @@ async function run() {
       res.send(result);
     });
 
+    //////admin
     //make admin
     app.put("/users/admin/:id", async (req, res) => {
       const id = req.params.id;
@@ -112,21 +114,14 @@ async function run() {
       const result = { admin: user?.role === "admin" };
       res.send(result);
     });
-    // app.get("/users/admin/:email", async (req, res) => {
-    //   const email = req.params.email;
-    //   // if (req.decoded.email !== email) {
-    //   //   res.send({ admin: false });
-    //   // }
-    //   const query = { email: email };
-    //   const user = await userCollection.findOne(query);
-    //   const result = { admin: user?.role === "admin" };
-    //   console.log(result);
-    //   res.send(result);
-    // });
 
+    ///////instructor
     //check instructor
-    app.get("/users/instructor/:email", async (req, res) => {
+    app.get("/users/instructor/:email", veryfiJWT, async (req, res) => {
       const email = req.params.email;
+      if (req.decoded.email !== email) {
+        res.send({ instructor: false });
+      }
       const query = { email: email };
       const user = await userCollection.findOne(query);
       const result = { instructor: user?.role === "instructor" };
@@ -193,11 +188,14 @@ async function run() {
     });
     /////////////////////
 
+    ////////////reviews data
     //parent reviews data get
     app.get("/parentReviews", async (req, res) => {
       const result = await parentReviewCollention.find().toArray();
       res.send(result);
     });
+
+    //////news data
 
     //news data get from server side
     app.get("/news", async (req, res) => {
