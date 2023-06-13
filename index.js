@@ -100,6 +100,7 @@ async function run() {
       res.send(result);
     });
 
+    ////////////////////////////////////////////////////////////////////////////////////////////
     // check admin
     app.get("/users/admin/:email", veryfiJWT, async (req, res) => {
       const email = req.params.email;
@@ -111,6 +112,17 @@ async function run() {
       const result = { admin: user?.role === "admin" };
       res.send(result);
     });
+    // app.get("/users/admin/:email", async (req, res) => {
+    //   const email = req.params.email;
+    //   // if (req.decoded.email !== email) {
+    //   //   res.send({ admin: false });
+    //   // }
+    //   const query = { email: email };
+    //   const user = await userCollection.findOne(query);
+    //   const result = { admin: user?.role === "admin" };
+    //   console.log(result);
+    //   res.send(result);
+    // });
 
     //check instructor
     app.get("/users/instructor/:email", async (req, res) => {
@@ -134,6 +146,8 @@ async function run() {
       res.send(result);
     });
 
+    ////////////classes
+
     //add class
     app.post("/classes", async (req, res) => {
       const classesDatas = req.body;
@@ -153,6 +167,31 @@ async function run() {
 
       res.send(result);
     });
+    //approved
+    app.patch("/classes/approved/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updata = {
+        $set: {
+          status: "approved",
+        },
+      };
+      const result = await classesCollection.updateOne(filter, updata);
+      res.send(result);
+    });
+    //dniyed
+    app.patch("/classes/deny/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updata = {
+        $set: {
+          status: "dined",
+        },
+      };
+      const result = await classesCollection.updateOne(filter, updata);
+      res.send(result);
+    });
+    /////////////////////
 
     //parent reviews data get
     app.get("/parentReviews", async (req, res) => {
