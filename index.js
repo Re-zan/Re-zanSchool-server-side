@@ -157,7 +157,7 @@ async function run() {
       const result = await classesCollection.find().sort({ _id: -1 }).toArray();
       res.send(result);
     });
-    app.get("/classes/:id", async (req, res) => {
+    app.get("/getclasses/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await classesCollection.findOne(query);
