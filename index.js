@@ -59,6 +59,9 @@ async function run() {
     const newsCollection = client.db("re-zanSchoolDB").collection("news");
     const userCollection = client.db("re-zanSchoolDB").collection("user");
     const classesCollection = client.db("re-zanSchoolDB").collection("classes");
+    const myclassesCollection = client
+      .db("re-zanSchoolDB")
+      .collection("myclasses");
 
     //make route for jwt
     app.post("/users/jwt", (req, res) => {
@@ -154,12 +157,31 @@ async function run() {
       const result = await classesCollection.find().sort({ _id: -1 }).toArray();
       res.send(result);
     });
+    app.get("/classes/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await classesCollection.findOne(query);
+      res.send(result);
+    });
     //get classes by instructor
     app.get("/classes/:email", async (req, res) => {
       const result = await classesCollection
         .find({ instructor_email: req.params.email })
         .toArray();
 
+      res.send(result);
+    });
+    app.put("/classes/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const data = req.body;
+      const feedbackData = data.feedback;
+      const updateData = {
+        $set: {
+          feedBack: feedbackData,
+        },
+      };
+      const result = await classesCollection.updateOne(filter, updateData);
       res.send(result);
     });
     //approved
@@ -202,7 +224,26 @@ async function run() {
       const result = await newsCollection.find().sort({ date: -1 }).toArray();
       res.send(result);
     });
+    ///////////////// student
+    app.get("/my_classes/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await myclassesCollection.find(query).toArray();
+      res.send(result);
+    });
+    app.post("/my_classes", async (req, res) => {
+      const datas = req.body;
+      const result = await myclassesCollection.insertOne(datas);
+      res.send(result);
+    });
 
+    app.delete("/my_classes/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await myclassesCollection.deleteOne(query);
+      res.send(result);
+    });
+    ///////////////////////////
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
