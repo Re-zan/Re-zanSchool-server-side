@@ -3,6 +3,7 @@ const app = express();
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const stripe = require("stripe")(process.env.ACCESS_STRIPE_TOKEN);
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const port = process.env.PORT || 5000;
@@ -62,7 +63,7 @@ async function run() {
     const myclassesCollection = client
       .db("re-zanSchoolDB")
       .collection("myclasses");
-
+    const payemtCollention = client.db("re-zanSchoolDB").collection("payments");
     //make route for jwt
     app.post("/users/jwt", (req, res) => {
       const userdata = req.body;
@@ -171,6 +172,7 @@ async function run() {
 
       res.send(result);
     });
+    //feedbackSet
     app.put("/classes/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -242,6 +244,29 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await myclassesCollection.deleteOne(query);
       res.send(result);
+    });
+
+    /////////////////////////////
+    //////////payment
+
+    app.post("/create-payment-inteten", async (req, res) => {
+      const { price } = req.body;
+      amount = price * 100;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
+    });
+
+    // //payment
+    app.post("/payments", async (req, res) => {
+      const payment = req.body;
+      const insertResult = await payemtCollention.insertOne(payment);
+      res.send(insertResult);
     });
     ///////////////////////////
     await client.db("admin").command({ ping: 1 });
